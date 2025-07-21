@@ -123,6 +123,15 @@ class BPETokenizer:
         self.special_tokens.sort(key=len, reverse=True)  # Sort special tokens by length for regex matching
         self.token_to_id = {token: idx for idx, token in vocab.items()}
 
+        for token in self.special_tokens:
+            if token not in self.token_to_id:
+                # If the special token is not in the vocabulary, add it
+                new_idx = len(self.token_to_id)
+                self.token_to_id[token] = new_idx
+                self.vocab[new_idx] = token.encode('utf-8')
+
+        
+
     def encode(self, text):
         """
         Encode the input text into subword tokens using the BPE vocabulary and merges.
@@ -172,6 +181,10 @@ class BPETokenizer:
                                 merged_applied = True
                                 break
 
+                        if merged_applied:
+                            # If a merge was applied, we need to restart the loop
+                            break
+
                     if not merged_applied:
                         break
 
@@ -205,9 +218,6 @@ class BPETokenizer:
         for token_id in tokens:
             if token_id in self.vocab:
                 decoded_tokens.append(self.vocab[token_id])
-            else:
-                # Handle unknown tokens
-                decoded_tokens.append(b"<unk>")
 
         return b"".join(decoded_tokens).decode('utf-8', errors='replace')
 
