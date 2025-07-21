@@ -118,27 +118,35 @@ class BPETokenizer:
 
     def __init__(self, vocab, merges, special_tokens=None):
         self.vocab = vocab
-        self.token_to_id = {token: idx for idx, token in vocab.items()}
         self.merges = merges
         self.special_tokens = special_tokens if special_tokens else []
+        self.special_tokens.sort(key=len, reverse=True)  # Sort special tokens by length for regex matching
+        self.token_to_id = {token: idx for idx, token in vocab.items()}
 
     def encode(self, text):
         """
         Encode the input text into subword tokens using the BPE vocabulary and merges.
         """
-        escaped_tokens = [re.escape(token) for token in self.special_tokens]
-        pattern = "|".join(escaped_tokens)
+        if self.special_tokens:
+            escaped_tokens = [re.escape(token) for token in self.special_tokens]
+            pattern = "(" + "|".join(escaped_tokens) + ")"
 
-        chunks = re.split(pattern, text)
+            chunks = re.split(pattern, text)
+        else:
+            chunks = [text]
+
         final_tokens = []
 
         for chunk in chunks:
             # Tokenize the chunk using the regex pattern
             # print("chunk: ", chunk)
+            if chunk in self.special_tokens:
+                # If the chunk is a special token, directly append its ID
+                final_tokens.append(self.token_to_id[chunk.encode('utf-8')])
+                continue
 
             for match in re.finditer(PAT, chunk):
                 pretoken = match.group(0)
-
                 pretoken_bytes = pretoken.encode('utf-8')
                 pretoken_bytes_tuple = tuple(bytes([b]) for b in pretoken_bytes)
 
@@ -206,7 +214,7 @@ class BPETokenizer:
 # tokenizer = BPETokenizer(
 #     vocab={0: b' ', 1: b'a', 2: b'c', 3: b'e', 4: b'h', 5: b't', 6: b'th', 7: b' c', 8: b' a', 9: b'the', 10: b' at'},
 #     merges=[(b't', b'h'), (b' ', b'c'), (b' ', b'a'), (b'th', b'e'), (b' a', b't')], 
-#     special_tokens=["<|endoftext|>"]
+#     # special_tokens=["<|endoftext|>"]
 # )
 # token_ids = tokenizer.encode('the cat ate')
 # print(token_ids)
