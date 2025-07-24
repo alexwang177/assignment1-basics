@@ -13,6 +13,8 @@ from cs336_basics.tokenizer import train_bpe_tokenizer, BPETokenizer
 from cs336_basics.linear import Linear
 from cs336_basics.embedding import Embedding
 from cs336_basics.rms_norm import RMSNorm
+from cs336_basics.swiglu import SiLU
+from cs336_basics.swiglu import SwiGLU
 
 
 def run_linear(
@@ -90,7 +92,11 @@ def run_swiglu(
     # swiglu.w1.weight.data = w1_weight
     # swiglu.w2.weight.data = w2_weight
     # swiglu.w3.weight.data = w3_weight
-    raise NotImplementedError
+    swiglu = SwiGLU(d_model, d_ff)
+    swiglu.w1.W.data = w1_weight
+    swiglu.w2.W.data = w2_weight
+    swiglu.w3.W.data = w3_weight
+    return swiglu(in_features)
 
 
 def run_scaled_dot_product_attention(
@@ -401,7 +407,8 @@ def run_silu(in_features: Float[Tensor, " ..."]) -> Float[Tensor, " ..."]:
         Float[Tensor,"..."]: of with the same shape as `in_features` with the output of applying
         SiLU to each element.
     """
-    raise NotImplementedError
+    silu = SiLU()
+    return silu(in_features)
 
 
 def run_get_batch(
