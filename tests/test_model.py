@@ -223,6 +223,9 @@ def test_rmsnorm(numpy_snapshot, ts_state_dict, in_embeddings):
 
 
 def test_rope(numpy_snapshot, in_embeddings, d_model, theta, n_queries, pos_ids):
+
+    print(f"Testing RoPE with d_model={d_model}, theta={theta}, n_queries={n_queries}, pos_ids={pos_ids}")
+
     output = run_rope(
         d_model, theta=theta, max_seq_len=n_queries, in_query_or_key=in_embeddings, token_positions=pos_ids
     )
