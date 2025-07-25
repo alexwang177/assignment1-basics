@@ -18,6 +18,7 @@ from cs336_basics.swiglu import SwiGLU
 from cs336_basics.rope import RotaryPositionalEmbeddings
 from cs336_basics.softmax import SoftMax
 from cs336_basics.attention import ScaledDotProductAttention
+from cs336_basics.causal_mhsa import CausalMHSA
 
 
 def run_linear(
@@ -155,7 +156,14 @@ def run_multihead_self_attention(
         Float[Tensor, " ... sequence_length d_out"]: Tensor with the output of running your optimized, batched multi-headed attention
         implementation with the given QKV projection weights and input features.
     """
-    raise NotImplementedError
+    print(f"Running multi-head self-attention with d_model: {d_model}, num_heads: {num_heads}")
+    mhsa = CausalMHSA(d_model, num_heads, use_rope=False)
+    mhsa.Q_proj.W.data = q_proj_weight
+    mhsa.K_proj.W.data = k_proj_weight
+    mhsa.V_proj.W.data = v_proj_weight
+    mhsa.Out_proj.W.data = o_proj_weight
+
+    return mhsa(in_features)
 
 
 def run_multihead_self_attention_with_rope(
@@ -195,7 +203,16 @@ def run_multihead_self_attention_with_rope(
         Float[Tensor, " ... sequence_length d_out"]: Tensor with the output of running your optimized, batched multi-headed attention
         implementation with the given QKV projection weights and input features.
     """
-    raise NotImplementedError
+    print(f"Running multi-head self-attention RoPE with d_model: {d_model}, num_heads: {num_heads}")
+    mhsa = CausalMHSA(d_model, num_heads)
+    mhsa.Q_proj.W.data = q_proj_weight
+    mhsa.K_proj.W.data = k_proj_weight
+    mhsa.V_proj.W.data = v_proj_weight
+    mhsa.Out_proj.W.data = o_proj_weight
+    mhsa.rope.max_seq_len = max_seq_len
+    mhsa.rope.base = theta
+
+    return mhsa(in_features, token_positions=token_positions)
 
 
 def run_rope(

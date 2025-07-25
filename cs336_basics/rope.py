@@ -44,7 +44,7 @@ class RotaryPositionalEmbeddings(torch.nn.Module):
     def forward(
         self,
         x: torch.Tensor,               # (..., seq_len, d_k)
-        token_positions: torch.Tensor  # (..., seq_len)
+        token_positions: Optional[torch.Tensor] = None,  # (..., seq_len)
     ) -> torch.Tensor:
         """
         Args:
@@ -58,6 +58,10 @@ class RotaryPositionalEmbeddings(torch.nn.Module):
         *batch_shape, seq_len, d_k = x.shape
 
         assert d_k == self.dim, f"Expected input last dim {self.dim}, got {d_k}"
+
+        if token_positions is None:
+            # If no token positions are provided, use the default range
+            token_positions = torch.arange(seq_len, device=x.device)
 
         # Slice cos/sin caches with token positions
         cos = self.cache_cos[token_positions]  # (seq_len, dim // 2)
