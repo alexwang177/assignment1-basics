@@ -19,7 +19,7 @@ class Linear(torch.nn.Module):
 
         std = (2.0 / (in_features + out_features)) ** 0.5
 
-        self.W = torch.nn.Parameter(
+        self.weight = torch.nn.Parameter(
             torch.nn.init.trunc_normal_(
                 torch.empty((out_features, in_features), device=device, dtype=dtype),
                 mean=0.0,
@@ -39,4 +39,4 @@ class Linear(torch.nn.Module):
         Returns:
             torch.Tensor: Output tensor of shape (batch_size, out_features).
         """
-        return x @ self.W.T
+        return x @ self.weight.T

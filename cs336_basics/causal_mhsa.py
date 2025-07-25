@@ -29,10 +29,10 @@ class CausalMHSA(torch.nn.Module):
         self.dk = d_model // n_heads
         self.dv = self.dk
 
-        self.Q_proj = Linear(d_model, n_heads * self.dk, device=device, dtype=dtype)
-        self.K_proj = Linear(d_model, n_heads * self.dk, device=device, dtype=dtype)
-        self.V_proj = Linear(d_model, n_heads * self.dv, device=device, dtype=dtype)
-        self.Out_proj = Linear(n_heads * self.dv, d_model, device=device, dtype=dtype)
+        self.q_proj = Linear(d_model, n_heads * self.dk, device=device, dtype=dtype)
+        self.k_proj = Linear(d_model, n_heads * self.dk, device=device, dtype=dtype)
+        self.v_proj = Linear(d_model, n_heads * self.dv, device=device, dtype=dtype)
+        self.output_proj = Linear(n_heads * self.dv, d_model, device=device, dtype=dtype)
 
         self.scaled_dot_product_attention = ScaledDotProductAttention()
         self.rope = RotaryPositionalEmbeddings(self.dk) if use_rope else None
@@ -49,9 +49,9 @@ class CausalMHSA(torch.nn.Module):
         """
         batch_size, *other_dims, seq_len, d_model = x.shape
 
-        Q = self.Q_proj(x) # Shape: (batch_size, ..., seq_len, n_heads * d_k) n_heads * d_k == d_model
-        K = self.K_proj(x) # Shape: (batch_size, ..., seq_len, n_heads * d_k)
-        V = self.V_proj(x) # Shape: (batch_size, ..., seq_len, n_heads * d_v)
+        Q = self.q_proj(x) # Shape: (batch_size, ..., seq_len, n_heads * d_k) n_heads * d_k == d_model
+        K = self.k_proj(x) # Shape: (batch_size, ..., seq_len, n_heads * d_k)
+        V = self.v_proj(x) # Shape: (batch_size, ..., seq_len, n_heads * d_v)
 
         # Reshape to (batch, ..., seq_len, n_heads, head_dim)
         Q = Q.view(batch_size, *other_dims, seq_len, self.n_heads, self.dk)
@@ -74,5 +74,5 @@ class CausalMHSA(torch.nn.Module):
         attention_scores = attention_scores.transpose(-3, -2)  # (batch_size, ..., seq_len, n_heads, head_dim)
         attention_scores = attention_scores.reshape(batch_size, *other_dims, seq_len, self.n_heads * self.dv) # Shape: (batch_size, ..., seq_len, n_heads * d_v)
 
-        out = self.Out_proj(attention_scores)
+        out = self.output_proj(attention_scores)
         return out  # Shape: (batch_size, ..., seq_len, d_model)

@@ -19,6 +19,7 @@ from cs336_basics.rope import RotaryPositionalEmbeddings
 from cs336_basics.softmax import SoftMax
 from cs336_basics.attention import ScaledDotProductAttention
 from cs336_basics.causal_mhsa import CausalMHSA
+from cs336_basics.transformer import TransformerBlock
 
 
 def run_linear(
@@ -40,7 +41,7 @@ def run_linear(
         Float[Tensor, "... d_out"]: The transformed output of your linear module.
     """
     linear = Linear(d_in, d_out)
-    linear.load_state_dict({"W": weights})
+    linear.load_state_dict({"weight": weights})
     return linear(in_features)
 
 
@@ -158,10 +159,10 @@ def run_multihead_self_attention(
     """
     print(f"Running multi-head self-attention with d_model: {d_model}, num_heads: {num_heads}")
     mhsa = CausalMHSA(d_model, num_heads, use_rope=False)
-    mhsa.Q_proj.W.data = q_proj_weight
-    mhsa.K_proj.W.data = k_proj_weight
-    mhsa.V_proj.W.data = v_proj_weight
-    mhsa.Out_proj.W.data = o_proj_weight
+    mhsa.q_proj.weight.data = q_proj_weight
+    mhsa.k_proj.weight.data = k_proj_weight
+    mhsa.v_proj.weight.data = v_proj_weight
+    mhsa.output_proj.weight.data = o_proj_weight
 
     return mhsa(in_features)
 
@@ -205,10 +206,10 @@ def run_multihead_self_attention_with_rope(
     """
     print(f"Running multi-head self-attention RoPE with d_model: {d_model}, num_heads: {num_heads}")
     mhsa = CausalMHSA(d_model, num_heads)
-    mhsa.Q_proj.W.data = q_proj_weight
-    mhsa.K_proj.W.data = k_proj_weight
-    mhsa.V_proj.W.data = v_proj_weight
-    mhsa.Out_proj.W.data = o_proj_weight
+    mhsa.q_proj.weight.data = q_proj_weight
+    mhsa.k_proj.weight.data = k_proj_weight
+    mhsa.v_proj.weight.data = v_proj_weight
+    mhsa.output_proj.weight.data = o_proj_weight
     mhsa.rope.max_seq_len = max_seq_len
     mhsa.rope.base = theta
 
@@ -308,7 +309,11 @@ def run_transformer_block(
         Float[Tensor, "batch sequence_length d_model"] Tensor with the output of
         running the Transformer block on the input features while using RoPE.
     """
-    raise NotImplementedError
+    transformer_block = TransformerBlock(d_model, num_heads, d_ff)
+    transformer_block.load_state_dict(weights)
+    transformer_block.attn.rope.max_seq_len = max_seq_len
+    transformer_block.attn.rope.base = theta
+    return transformer_block(in_features)
 
 
 def run_transformer_lm(
@@ -414,7 +419,7 @@ def run_rmsnorm(
         RMSNorm of the `in_features`.
     """
     rms_norm = RMSNorm(d_model, eps)
-    rms_norm.load_state_dict({"gain": weights})
+    rms_norm.load_state_dict({"weight": weights})
     return rms_norm(in_features)
 
 
