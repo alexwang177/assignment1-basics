@@ -16,7 +16,7 @@ class Embedding(torch.nn.Module):
             dtype (torch.dtype, optional): Data type of the layer parameters.
         """
         super().__init__()
-        self.embedding_table = torch.nn.Parameter(
+        self.weight = torch.nn.Parameter(
             torch.nn.init.trunc_normal_(
                 torch.empty((num_embeddings, embedding_dim), device=device, dtype=dtype),
                 mean=0.0,
@@ -36,4 +36,4 @@ class Embedding(torch.nn.Module):
         Returns:
             torch.Tensor: Output tensor of shape (batch_size, sequence_length, embedding_dim).
         """
-        return self.embedding_table[token_ids] # shape (batch_size, sequence_length, embedding_dim)
+        return self.weight[token_ids] # shape (batch_size, sequence_length, embedding_dim)

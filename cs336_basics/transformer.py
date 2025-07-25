@@ -9,7 +9,15 @@ class TransformerBlock(torch.nn.Module):
     A Transformer block that applies multi-head self-attention with RoPE and a SwiGLU feed-forward network.
     """
 
-    def __init__(self, d_model: int, num_heads: int, d_ff: int, device: torch.device = None, dtype: torch.dtype = None):
+    def __init__(self, 
+        d_model: int, 
+        num_heads: int, 
+        d_ff: int, 
+        rope_theta: float = 10000.0, 
+        rope_max_seq_length: int = 4096,
+        device: torch.device = None, 
+        dtype: torch.dtype = None
+    ):
         """
         Initializes the Transformer block.
 
@@ -23,6 +31,8 @@ class TransformerBlock(torch.nn.Module):
         super().__init__()
         self.ln1 = RMSNorm(d_model, device=device, dtype=dtype)
         self.attn = CausalMHSA(d_model, num_heads, device=device, dtype=dtype)
+        self.attn.rope.base = rope_theta
+        self.attn.rope.max_seq_len = rope_max_seq_length
         self.ln2 = RMSNorm(d_model, device=device, dtype=dtype)
         self.ffn = SwiGLU(d_model, d_ff, device=device, dtype=dtype)
         
