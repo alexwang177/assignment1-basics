@@ -21,3 +21,24 @@ class Linear(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return x @ self.W.T
+
+
+class Embedding(nn.Module):
+
+    def __init__(self, num_embeddings, embedding_dim, device=None, dtype=None):
+
+        super().__init__()
+
+        self.table = nn.Parameter(
+            nn.init.trunc_normal_(
+                torch.empty((num_embeddings, embedding_dim), device=device, dtype=dtype),
+                mean=0.0,
+                std=1.0,
+                a=-3.0,
+                b=3.0
+            )
+        )
+
+    def forward(self, token_ids: torch.Tensor) -> torch.Tensor:
+        # token_ids has shape (batch, sequence_length)
+        return self.table[token_ids]
