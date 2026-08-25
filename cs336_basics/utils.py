@@ -55,9 +55,5 @@ class RMSNorm(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-
-        tmp = x ** 2
-        tmp = tmp.mean(dim=-1, keepdim=True)
-        rms = (tmp + self.eps) ** 0.5
-
+        rms = torch.sqrt(torch.mean(x ** 2, dim=-1, keepdim=True) + self.eps)
         return x / rms * self.gain
