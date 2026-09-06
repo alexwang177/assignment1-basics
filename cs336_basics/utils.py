@@ -88,7 +88,7 @@ class RoPE(nn.Module):
     def __init__(self, theta: float, d_k: int, max_seq_len: int, device=None):
         super().__init__()
 
-        asserg d_k // 2 == 0
+        assert d_k % 2 == 0
 
         token_positions = torch.arange(start=0, end=max_seq_len, step=1, device=device, dtype=torch.float).reshape((max_seq_len, 1))
         pair_indices = torch.arange(start=0, end=d_k, step=2, device=device, dtype=torch.float).reshape((1, d_k // 2))
@@ -99,8 +99,20 @@ class RoPE(nn.Module):
         cos_table = torch.cos(angles)
         sin_table = torch.sin(angles)
 
-        self.register_buffer("cos_table", self.cos_table, persistent=False)
-        self.register_buffer("sin_table", self.sin_table, persistent=False)
+        self.register_buffer("cos_table", cos_table, persistent=False)
+        self.register_buffer("sin_table", sin_table, persistent=False)
 
     def forward(self, x: torch.Tensor, token_positions: torch.Tensor) -> torch.Tensor:
-        pass 
+        cos_rows = self.cos_table[token_positions]
+        sin_rows = self.sin_table[token_positions]
+
+        x_even = x[..., 0::2]
+        x_odd = x[..., 1::2]
+
+        even_rotated = x_even * cos_rows + x_odd * -sin_rows
+        odd_rotated = x_even * sin_rows + x_odd * cos_rows
+
+        output = torch.empty_like(x)
+        output[..., 0::2] = even_rotated
+        output[..., 1::2] = odd_rotated
+        return output
