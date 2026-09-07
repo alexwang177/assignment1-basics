@@ -116,3 +116,14 @@ class RoPE(nn.Module):
         output[..., 0::2] = even_rotated
         output[..., 1::2] = odd_rotated
         return output
+
+
+def softmax(x: torch.Tensor, i: int) -> torch.Tensor:
+    stable = x - torch.max(x, dim=i, keepdim=True).values
+
+    exp_values = torch.exp(stable)
+    denominator = torch.sum(exp_values, dim=i, keepdim=True)
+
+    output = exp_values / denominator
+
+    return output
