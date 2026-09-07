@@ -123,3 +123,14 @@ def softmax(x: torch.Tensor, i: int) -> torch.Tensor:
     exp_values = torch.exp(stable)
     output = exp_values / torch.sum(exp_values, dim=i, keepdim=True)
     return output
+
+
+def scaled_dpa(Q: torch.Tensor, K: torch.Tensor, V: torch.Tensor, mask=None) -> torch.Tensor:
+    d_k = Q.shape[-1]
+    scaled_scores = (Q @ torch.transpose(K, -2, -1)) / (d_k ** 0.5)
+
+    if mask is not None:
+        scaled_scores = scaled_scores.masked_fill(~mask, -torch.inf)
+
+    attn_probs = softmax(scaled_scores, i=-1)
+    return attn_probs @ V
