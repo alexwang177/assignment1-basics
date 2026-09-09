@@ -134,3 +134,53 @@ def scaled_dpa(Q: torch.Tensor, K: torch.Tensor, V: torch.Tensor, mask=None) -> 
 
     attn_probs = softmax(scaled_scores, i=-1)
     return attn_probs @ V
+
+
+class CausalMHA(nn.Module):
+
+    def __init__(self, d_model: int, num_heads: int, theta=None, max_seq_len=None, use_rope=False) -> None:
+        super().__init__()
+
+        assert d_model % num_heads == 0
+        self.d_k = d_model // num_heads
+        self.num_heads = num_heads
+
+        self.q_proj = Linear(in_features=d_model, out_features=d_model)
+        self.k_proj = Linear(in_features=d_model, out_features=d_model)
+        self.v_proj = Linear(in_features=d_model, out_features=d_model)
+
+        self.out_proj = Linear(in_features=d_model, out_features=d_model)
+
+        self.rope = None
+        if use_rope:
+            assert theta is not None and max_seq_len is not None
+            self.rope = RoPE(theta=theta, d_k=self.d_k, max_seq_len=max_seq_len)
+
+    
+    def _reshape(self, t: torch.Tensor) -> torch.Tensor:
+        seq_len = t.shape[-2]
+        t = torch.reshape(t, (*t.shape[:-2], seq_len, self.num_heads, self.d_k))
+        return torch.transpose(t, -3, -2)
+
+    
+    def forward(self, x: torch.Tensor, token_positions=None) -> torch.Tensor:
+        seq_len = x.shape[-2]
+
+        Q, K, V = self.q_proj(x), self.k_proj(x), self.v_proj(x) # (..., seq_len, d_model)
+        Q, K, V = self._reshape(Q), self._reshape(K), self._reshape(V) # (..., num_heads, seq_len, d_k)
+
+        if self.rope is not None:
+            assert token_positions is not None
+
+            token_positions = torch.unsqueeze(token_positions, -2) # (..., 1, seq_len)
+            token_positions = token_positions.expand((*token_positions.shape[:-2], self.num_heads, seq_len)) # (..., num_heads, seq_len)
+
+            Q, K = self.rope(Q, token_positions), self.rope(K, token_positions)
+
+        mask = torch.tril(torch.ones((seq_len, seq_len), dtype=torch.bool, device=x.device)) # (seq_len, seq_len)
+        attn_out = scaled_dpa(Q, K, V, mask) # (..., num_heads, seq_len, d_k)
+
+        attn_out = torch.transpose(attn_out, -3, -2) # (..., seq_len, num_heads, d_k)
+        attn_out = torch.reshape(attn_out, (*attn_out.shape[:-2], self.num_heads * self.d_k))
+
+        return self.out_proj(attn_out)
