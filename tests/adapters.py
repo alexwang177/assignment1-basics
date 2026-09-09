@@ -156,9 +156,7 @@ def run_multihead_self_attention(
     """
     causal_mha = CausalMHA(d_model=d_model, num_heads=num_heads)
     causal_mha.load_state_dict({
-        "q_proj.W": q_proj_weight,
-        "k_proj.W": k_proj_weight,
-        "v_proj.W": v_proj_weight,
+        "qkv_proj.W": torch.cat((q_proj_weight, k_proj_weight, v_proj_weight), dim=0),
         "out_proj.W": o_proj_weight
     })
 
@@ -203,9 +201,7 @@ def run_multihead_self_attention_with_rope(
     """
     causal_mha = CausalMHA(d_model=d_model, num_heads=num_heads, theta=theta, max_seq_len=max_seq_len, use_rope=True)
     causal_mha.load_state_dict({
-        "q_proj.W": q_proj_weight,
-        "k_proj.W": k_proj_weight,
-        "v_proj.W": v_proj_weight,
+        "qkv_proj.W": torch.cat((q_proj_weight, k_proj_weight, v_proj_weight), dim=0),
         "out_proj.W": o_proj_weight
     })
 

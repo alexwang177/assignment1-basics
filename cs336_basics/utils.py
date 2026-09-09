@@ -142,13 +142,11 @@ class CausalMHA(nn.Module):
         super().__init__()
 
         assert d_model % num_heads == 0
+        self.d_model = d_model
         self.d_k = d_model // num_heads
         self.num_heads = num_heads
 
-        self.q_proj = Linear(in_features=d_model, out_features=d_model)
-        self.k_proj = Linear(in_features=d_model, out_features=d_model)
-        self.v_proj = Linear(in_features=d_model, out_features=d_model)
-
+        self.qkv_proj = Linear(in_features=d_model, out_features=3 * d_model)
         self.out_proj = Linear(in_features=d_model, out_features=d_model)
 
         self.rope = None
@@ -166,7 +164,8 @@ class CausalMHA(nn.Module):
     def forward(self, x: torch.Tensor, token_positions=None) -> torch.Tensor:
         seq_len = x.shape[-2]
 
-        Q, K, V = self.q_proj(x), self.k_proj(x), self.v_proj(x) # (..., seq_len, d_model)
+        QKV = self.qkv_proj(x) # (..., seq_len, 3 * d_model)
+        Q, K, V = torch.split(QKV, self.d_model, dim=-1) # each of them are (..., seq_len, d_model)
         Q, K, V = self._reshape(Q), self._reshape(K), self._reshape(V) # (..., num_heads, seq_len, d_k)
 
         if self.rope is not None:
