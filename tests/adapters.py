@@ -409,7 +409,48 @@ def run_transformer_lm(
         Float[Tensor, "batch_size sequence_length vocab_size"]: Tensor with the predicted unnormalized
         next-word distribution for each token.
     """
-    raise NotImplementedError
+    transformer_lm = TransformerLM(
+        vocab_size=vocab_size,
+        context_length=context_length,
+        d_model=d_model,
+        num_layers=num_layers,
+        num_heads=num_heads,
+        d_ff=d_ff,
+        rope_theta=rope_theta
+    )
+
+    new_weights = {
+        "token_embeddings.table": weights["token_embeddings.weight"],
+        "ln_final.gain": weights["ln_final.weight"],
+        "lm_head.W": weights["lm_head.weight"]
+    }
+
+    for i in range(num_layers):
+
+        # attn projections
+        new_weights[f"layers.{i}.attn.qkv_proj.W"] = torch.cat(                                                                                                                                                                                                
+           [                                                                                                                                                                                                                        
+               weights[f"layers.{i}.attn.q_proj.weight"],                                                                                                                                                                                      
+               weights[f"layers.{i}.attn.k_proj.weight"],                                                                                                                                                                                        
+               weights[f"layers.{i}.attn.v_proj.weight"],                                                                                                                                                                                           
+           ],                                                                                                                                                                                                                       
+           dim=0,                                                                                                                                                                                                                   
+        )
+        new_weights[f"layers.{i}.attn.out_proj.W"] = weights[f"layers.{i}.attn.output_proj.weight"]
+
+        # norms
+        new_weights[f"layers.{i}.ln1.gain"] = weights[f"layers.{i}.ln1.weight"]
+        new_weights[f"layers.{i}.ln2.gain"] = weights[f"layers.{i}.ln2.weight"]
+
+        # ffns
+        new_weights[f"layers.{i}.ffn.w1.W"] = weights[f"layers.{i}.ffn.w1.weight"]
+        new_weights[f"layers.{i}.ffn.w2.W"] = weights[f"layers.{i}.ffn.w2.weight"]
+        new_weights[f"layers.{i}.ffn.w3.W"] = weights[f"layers.{i}.ffn.w3.weight"]
+
+
+    transformer_lm.load_state_dict(new_weights)
+
+    return transformer_lm(in_indices)
 
 
 def run_rmsnorm(
