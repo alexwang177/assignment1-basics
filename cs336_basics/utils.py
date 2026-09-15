@@ -183,3 +183,17 @@ class CausalMHA(nn.Module):
         attn_out = torch.reshape(attn_out, (*attn_out.shape[:-2], self.num_heads * self.d_k))
 
         return self.out_proj(attn_out)
+
+
+class TransformerBlock(nn.Module):
+
+    def __init__(self, d_model: int, num_heads: int, d_ff: int, max_seq_len: int, theta: int):
+        super().__init__()
+        self.attn = CausalMHA(d_model=d_model, num_heads=num_heads, theta=theta, max_seq_len=max_seq_len, use_rope=True)
+        self.ffn = SwiGLU(d_model=d_model, d_ff=d_ff)
+        self.ln1 = RMSNorm(d_model=d_model)
+        self.ln2 = RMSNorm(d_model=d_model)
+
+    def forward(self, x: torch.Tensor, token_positions=None) -> torch.Tensor:
+        y = x + self.attn(self.ln1(x), token_positions=token_positions)
+        return y + self.ffn(self.ln2(y))
