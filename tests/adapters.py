@@ -309,34 +309,24 @@ def run_transformer_block(
         theta=theta
     )
 
-    # qkv projection
-    weights["attn.qkv_proj.W"] = torch.cat(
-        (weights["attn.q_proj.weight"], weights["attn.k_proj.weight"], weights["attn.v_proj.weight"]), 
-        dim=0
-    )
-    weights.pop("attn.q_proj.weight")
-    weights.pop("attn.k_proj.weight")
-    weights.pop("attn.v_proj.weight")
+    new_weights = {                                                                                                                                                                                                                  
+       "attn.qkv_proj.W": torch.cat(                                                                                                                                                                                                
+           [                                                                                                                                                                                                                        
+               weights["attn.q_proj.weight"],                                                                                                                                                                                           
+               weights["attn.k_proj.weight"],                                                                                                                                                                                           
+               weights["attn.v_proj.weight"],                                                                                                                                                                                           
+           ],                                                                                                                                                                                                                       
+           dim=0,                                                                                                                                                                                                                   
+       ),                                                                                                                                                                                                                           
+       "attn.out_proj.W": weights["attn.output_proj.weight"],                                                                                                                                                                           
+       "ln1.gain": weights["ln1.weight"],                                                                                                                                                                                               
+       "ln2.gain": weights["ln2.weight"],                                                                                                                                                                                               
+       "ffn.w1.W": weights["ffn.w1.weight"],                                                                                                                                                                                            
+       "ffn.w2.W": weights["ffn.w2.weight"],                                                                                                                                                                                            
+       "ffn.w3.W": weights["ffn.w3.weight"],                                                                                                                                                                                            
+    }   
 
-    # output projection
-    weights["attn.out_proj.W"] = weights["attn.output_proj.weight"]
-    weights.pop("attn.output_proj.weight")
-
-    # rms norms
-    weights["ln1.gain"] = weights["ln1.weight"]
-    weights["ln2.gain"] = weights["ln2.weight"]
-    weights.pop("ln1.weight")
-    weights.pop("ln2.weight")
-
-    # ffns
-    weights["ffn.w1.W"] = weights["ffn.w1.weight"]
-    weights["ffn.w2.W"] = weights["ffn.w2.weight"]
-    weights["ffn.w3.W"] = weights["ffn.w3.weight"]
-    weights.pop("ffn.w1.weight")
-    weights.pop("ffn.w2.weight")
-    weights.pop("ffn.w3.weight")
-
-    transformer_block.load_state_dict(weights)
+    transformer_block.load_state_dict(new_weights)
 
     return transformer_block(in_features, token_positions=torch.arange(start=0, end=in_features.shape[-2]))
 
