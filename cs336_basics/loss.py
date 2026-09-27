@@ -20,3 +20,22 @@ def ce_loss(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
     target_prob = target_prob.squeeze(-1) # [...]
 
     return torch.mean(-torch.log(target_prob)) # scalar tensor
+
+def optimized_ce_loss(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+    # logits shape: [..., vocab_size]
+    # targets shape: [...]
+    
+    #  Subtract the largest element for numerical stability.
+    max_values = torch.max(logits, dim=-1, keepdim=True).values # [..., 1]
+    stable_logits = logits - max_values # [..., vocab_size]
+
+    log_sum_exp = torch.log(torch.sum(torch.exp(stable_logits), dim=-1, keepdim=True)) # [..., 1]
+    targets = torch.unsqueeze(targets, dim=-1) # [..., 1]
+    target_logit = torch.gather(
+        input=stable_logits,
+        dim=-1,
+        index=targets
+    ) # [..., 1]
+
+    loss = log_sum_exp - target_logit # [..., 1]
+    return torch.mean(loss) # scalar tensor
