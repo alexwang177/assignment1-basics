@@ -1,5 +1,4 @@
 import torch
-from torch import nn
 import math
 
 from collections.abc import Callable
@@ -79,8 +78,8 @@ def grad_clip(parameters: Iterable[torch.nn.Parameter], max_l2_norm: float) -> N
     if l2_norm.item() > max_l2_norm:
         scale = max_l2_norm / (l2_norm + 1e-6)
 
-    for p in parameters:
-        if p.grad is None:
-            continue
+        for p in parameters:
+            if p.grad is None:
+                continue
 
-        p.grad.mul_(scale)
+            p.grad.mul_(scale)
