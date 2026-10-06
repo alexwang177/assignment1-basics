@@ -14,6 +14,7 @@ from cs336_basics.tokenizer import *
 from cs336_basics.utils import *
 from cs336_basics.loss import *
 from cs336_basics.optimizer import *
+from cs336_basics.lr_scheduler import *
 
 
 def run_linear(
@@ -597,7 +598,13 @@ def run_get_lr_cosine_schedule(
     Returns:
         Learning rate at the given iteration under the specified schedule.
     """
-    raise NotImplementedError
+    return lr_cosine_scheduler(
+        it=it,
+        max_learning_rate=max_learning_rate,
+        min_learning_rate=min_learning_rate,
+        warmup_iters=warmup_iters,
+        cosine_cycle_iters=cosine_cycle_iters
+    )
 
 
 def run_save_checkpoint(
