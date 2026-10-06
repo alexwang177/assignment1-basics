@@ -3,7 +3,7 @@ from torch import nn
 import math
 
 from collections.abc import Callable
-from typing import Optional
+from typing import Optional, Iterable
 
 class AdamW(torch.optim.Optimizer):
 
@@ -57,3 +57,30 @@ class AdamW(torch.optim.Optimizer):
                 state["v"] = v
 
         return loss
+
+
+def grad_clip(parameters: Iterable[torch.nn.Parameter], max_l2_norm: float) -> None:
+    total_squared_sum = None
+
+    for p in parameters:
+        if p.grad is None:
+            continue
+
+        if total_squared_sum is None:
+            total_squared_sum = torch.sum(p.grad ** 2)
+        else:
+            total_squared_sum += torch.sum(p.grad ** 2)
+
+    if total_squared_sum is None:
+        return
+
+    l2_norm = torch.sqrt(total_squared_sum)
+
+    if l2_norm.item() > max_l2_norm:
+        scale = max_l2_norm / (l2_norm + 1e-6)
+
+    for p in parameters:
+        if p.grad is None:
+            continue
+
+        p.grad.mul_(scale)
