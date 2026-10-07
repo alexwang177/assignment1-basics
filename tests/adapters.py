@@ -15,6 +15,7 @@ from cs336_basics.utils import *
 from cs336_basics.loss import *
 from cs336_basics.optimizer import *
 from cs336_basics.lr_scheduler import *
+from cs336_basics.data import *
 
 
 def run_linear(
@@ -517,7 +518,7 @@ def run_get_batch(
         is the sampled input sequences, and the second tuple item is the corresponding
         language modeling labels.
     """
-    raise NotImplementedError
+    return get_batch(dataset, batch_size, context_length, device)
 
 
 def run_softmax(in_features: Float[Tensor, " ..."], dim: int) -> Float[Tensor, " ..."]:
