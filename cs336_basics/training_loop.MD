@@ -2,27 +2,27 @@
    # Training Loop Checklist                                                
                                                                             
    ## Setup                                                                 
-   - [ ] Choose config mechanism: argparse, dataclass, YAML, or simple      
+   - [X] Choose config mechanism: argparse, dataclass, YAML, or simple      
  constants.                                                                 
    - [ ] Set random seeds for reproducibility.                              
-   - [ ] Select device: `cpu`, `cuda`, or `mps`.                            
+   - [X] Select device: `cpu`, `cuda`, or `mps`.                            
    - [ ] Load train/validation token arrays, preferably with `np.load(...,  
  mmap_mode="r")`.                                                           
                                                                             
    ## Model                                                                 
-   - [ ] Instantiate model with configurable hyperparameters:               
-     - [ ] vocab size                                                       
-     - [ ] context length                                                   
-     - [ ] number of layers                                                 
-     - [ ] number of heads                                                  
-     - [ ] embedding dimension                                              
-     - [ ] FFN dimension, if applicable                                     
-   - [ ] Move model to device.                                              
+   - [x] Instantiate model with configurable hyperparameters:               
+     - [x] vocab size                                                       
+     - [x] context length                                                   
+     - [x] number of layers                                                 
+     - [x] number of heads                                                  
+     - [x] embedding dimension                                              
+     - [x] FFN dimension, if applicable                                     
+   - [x] Move model to device.                                              
    - [ ] Check a dummy batch produces logits of expected shape.             
                                                                             
    ## Optimizer / Schedule                                                  
-   - [ ] Instantiate AdamW.                                                 
-   - [ ] Configure learning rate, betas, eps, weight decay.                 
+   - [x] Instantiate AdamW.                                                 
+   - [x] Configure learning rate, betas, eps, weight decay.                 
    - [ ] Add cosine LR schedule with warmup.                                
    - [ ] Set optimizer LR each iteration if using schedule.                 
    - [ ] Optionally enable gradient clipping.                               
