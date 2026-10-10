@@ -6,7 +6,7 @@
  constants.                                                                 
    - [ ] Set random seeds for reproducibility.                              
    - [X] Select device: `cpu`, `cuda`, or `mps`.                            
-   - [ ] Load train/validation token arrays, preferably with `np.load(...,  
+   - [x] Load train/validation token arrays, preferably with `np.load(...,  
  mmap_mode="r")`.                                                           
                                                                             
    ## Model                                                                 
@@ -18,7 +18,7 @@
      - [x] embedding dimension                                              
      - [x] FFN dimension, if applicable                                     
    - [x] Move model to device.                                              
-   - [ ] Check a dummy batch produces logits of expected shape.             
+   - [x] Check a dummy batch produces logits of expected shape.             
                                                                             
    ## Optimizer / Schedule                                                  
    - [x] Instantiate AdamW.                                                 
@@ -53,14 +53,14 @@
    - [ ] Verify resumed training starts from correct iteration.             
                                                                             
    ## Sanity Checks                                                         
-   - [ ] Overfit a tiny dataset.                                            
-   - [ ] Confirm loss decreases on a small run.                             
+   - [x] Overfit a tiny dataset.                                            
+   - [x] Confirm loss decreases on a small run.                             
    - [ ] Check no NaNs in loss or gradients.                                
    - [ ] Check batch/input/target shapes.                                   
    - [ ] Check model and data are on same device.                           
    - [ ] Confirm checkpoints can be saved and loaded.                       
                                                                             
    ## Experiment Logging                                                    
-   - [ ] Print iteration, train loss, validation loss, LR.                  
+   - [x] Print iteration, train loss, validation loss, LR.                  
    - [ ] Optionally log tokens/sec.                                         
    - [ ] Optionally log to WandB or another tracker.                        

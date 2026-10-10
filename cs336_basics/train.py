@@ -43,6 +43,16 @@ def train(args):
     # prepare dataset
     train_dataset = np.load(args.train_data, mmap_mode="r")
 
+    # check dummy batch shape
+    inputs, targets = get_batch(
+        dataset=train_dataset,
+        batch_size=args.batch_size,
+        context_length=args.context_length,
+        device=args.device
+    )
+    logging.info(f"inputs shape = {inputs.shape}")
+    logging.info(f"targets shape = {targets.shape}")
+
     # training loop
     model.train()
     for it in range(args.num_iters):
@@ -58,6 +68,12 @@ def train(args):
         logits = model(inputs)
         loss = optimized_ce_loss(logits, targets)
         loss.backward()
+
+        # apply grad clip
+        grad_clip(
+            parameters=model.parameters(), 
+            max_l2_norm=args.max_grad_norm
+        )
 
         # apply lr schedule
         lr = lr_cosine_scheduler(                                            
@@ -98,6 +114,7 @@ def main():
     parser.add_argument("--num-iters", type=int, default=1000)
     parser.add_argument("--device", default="mps")
     parser.add_argument("--checkpoint-every", type=int, default=10)
+    parser.add_argument("--max-grad-norm", type=float, default=1.0)
 
     # optimizer
     parser.add_argument("--lr", type=float, default=3e-4)
