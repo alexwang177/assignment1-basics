@@ -23,19 +23,19 @@
    ## Optimizer / Schedule                                                  
    - [x] Instantiate AdamW.                                                 
    - [x] Configure learning rate, betas, eps, weight decay.                 
-   - [ ] Add cosine LR schedule with warmup.                                
-   - [ ] Set optimizer LR each iteration if using schedule.                 
+   - [x] Add cosine LR schedule with warmup.                                
+   - [x] Set optimizer LR each iteration if using schedule.                 
    - [ ] Optionally enable gradient clipping.                               
                                                                             
    ## Training Step                                                         
-   - [ ] Sample batch with `get_batch`.                                     
-   - [ ] Forward pass.                                                      
-   - [ ] Compute next-token cross entropy loss.                             
-   - [ ] Zero gradients.                                                    
-   - [ ] Backward pass.                                                     
+   - [x] Sample batch with `get_batch`.                                     
+   - [x] Forward pass.                                                      
+   - [x] Compute next-token cross entropy loss.                             
+   - [x] Zero gradients.                                                    
+   - [x] Backward pass.                                                     
    - [ ] Clip gradients if enabled.                                         
-   - [ ] Optimizer step.                                                    
-   - [ ] Log training loss periodically.                                    
+   - [x] Optimizer step.                                                    
+   - [x] Log training loss periodically.                                    
                                                                             
    ## Validation                                                            
    - [ ] Periodically switch model to eval mode.                            
