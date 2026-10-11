@@ -7,6 +7,7 @@ from cs336_basics.optimizer import *
 from cs336_basics.lr_scheduler import *
 from cs336_basics.data import *
 from cs336_basics.loss import *
+from cs336_basics.checkpoint import *
 
 logging.basicConfig(                                        
     level=logging.INFO,                                     
@@ -90,6 +91,15 @@ def train(args):
 
         if it % args.log_every == 0:
             logging.info(f"Iteration {it}, lr={lr}, loss={loss.item()}")
+
+        if (it + 1) % args.checkpoint_every == 0 and args.checkpoint_output is not None:
+            logging.info(f"Iteration {it} Saving checkpoint...")
+            save_checkpoint(
+                model=model,
+                optimizer=optimizer,
+                iteration=it + 1,
+                out=f"{args.checkpoint_output}/it={it+1}"
+            )
 
 
 def main():

@@ -25,7 +25,7 @@
    - [x] Configure learning rate, betas, eps, weight decay.                 
    - [x] Add cosine LR schedule with warmup.                                
    - [x] Set optimizer LR each iteration if using schedule.                 
-   - [ ] Optionally enable gradient clipping.                               
+   - [x] Optionally enable gradient clipping.                               
                                                                             
    ## Training Step                                                         
    - [x] Sample batch with `get_batch`.                                     
@@ -33,7 +33,7 @@
    - [x] Compute next-token cross entropy loss.                             
    - [x] Zero gradients.                                                    
    - [x] Backward pass.                                                     
-   - [ ] Clip gradients if enabled.                                         
+   - [x] Clip gradients if enabled.                                         
    - [x] Optimizer step.                                                    
    - [x] Log training loss periodically.                                    
                                                                             
@@ -56,8 +56,8 @@
    - [x] Overfit a tiny dataset.                                            
    - [x] Confirm loss decreases on a small run.                             
    - [ ] Check no NaNs in loss or gradients.                                
-   - [ ] Check batch/input/target shapes.                                   
-   - [ ] Check model and data are on same device.                           
+   - [x] Check batch/input/target shapes.                                   
+   - [x] Check model and data are on same device.                           
    - [ ] Confirm checkpoints can be saved and loaded.                       
                                                                             
    ## Experiment Logging                                                    
