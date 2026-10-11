@@ -62,5 +62,5 @@
                                                                             
    ## Experiment Logging                                                    
    - [x] Print iteration, train loss, validation loss, LR.                  
-   - [ ] Optionally log tokens/sec.                                         
+   - [x] Optionally log tokens/sec.                                         
    - [ ] Optionally log to WandB or another tracker.                        

@@ -17,6 +17,37 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(message)s",     
 ) 
 
+def evaluate(
+    args,
+    model,
+    val_dataset,
+):
+    logging.info("Starting evaluation...")
+    model.eval()
+
+    eval_loss = 0
+
+    with torch.no_grad():
+
+        for _ in range(args.eval_iters):
+
+            inputs, targets = get_batch(
+                dataset=val_dataset,
+                batch_size=args.batch_size,
+                context_length=args.context_length,
+                device=args.device
+            )
+
+            logits = model(inputs)
+            loss = optimized_ce_loss(logits, targets)
+            eval_loss += loss.item()
+
+    eval_loss /= args.eval_iters
+    logging.info(f"Validation loss={eval_loss}")
+
+    model.train()
+
+
 def train(args):
 
     # Set seeds for randomness
@@ -59,8 +90,15 @@ def train(args):
             optimizer=optimizer
         )
 
-    # prepare dataset
+    # prepare datasets
     train_dataset = np.load(args.train_data, mmap_mode="r")
+    val_dataset = None
+
+    if args.val_data is not None:
+        if args.eval_every is None:
+            raise Exception("eval-every must be set if val-data is set.")
+
+        val_dataset = np.load(args.val_data, mmap_mode="r")
 
     # check dummy batch shape
     inputs, targets = get_batch(
@@ -74,9 +112,10 @@ def train(args):
 
     # training loop
     model.train()
-    last_log_time = time.time()
 
     for it in range(start_iteration, start_iteration + args.num_iters):
+
+        TRAIN_STEP_START_TS = time.time()
 
         inputs, targets = get_batch(
             dataset=train_dataset,
@@ -117,12 +156,17 @@ def train(args):
 
         optimizer.step()
 
+        if args.device == "mps" and hasattr(torch, "mps"):       
+            torch.mps.synchronize()
+        TRAIN_STEP_END_TS = time.time()
+        TRAIN_STEP_ELAPSED_SEC = TRAIN_STEP_END_TS - TRAIN_STEP_START_TS
+        tokens_per_sec = (args.batch_size * args.context_length) / TRAIN_STEP_ELAPSED_SEC
+
         if (it + 1) % args.log_every == 0:
-            now = time.time()
-            elapsed_time = now - last_log_time
-            last_log_time = now
-            tokens_per_sec = (args.log_every * args.batch_size * args.context_length) / elapsed_time
             logging.info(f"Iteration {it + 1}, lr={lr}, loss={loss.item()}, tokens/sec={tokens_per_sec}")
+
+        if args.val_data is not None and args.eval_every is not None and (it + 1) % args.eval_every == 0:
+            evaluate(args, model, val_dataset)
 
         if (it + 1) % args.checkpoint_every == 0 and args.checkpoint_output is not None:
             logging.info(f"Iteration {it + 1} Saving checkpoint...")
@@ -155,9 +199,13 @@ def main():
     parser.add_argument("--checkpoint-every", type=int, default=10)
     parser.add_argument("--resume-from")
 
+    # evaluation
+    parser.add_argument("--eval-every", type=int)
+    parser.add_argument("--eval-iters", type=int, default=10)
+
     # training
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--batch-size", type=int, default=1)
+    parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--num-iters", type=int, default=1000)
     parser.add_argument("--device", default="mps")
     parser.add_argument("--max-grad-norm", type=float, default=1.0)
@@ -176,7 +224,6 @@ def main():
 
     # logging
     parser.add_argument("--log-every", type=int, default=10)
-    parser.add_argument("--eval-every")
 
     args = parser.parse_args()
     train(args)
