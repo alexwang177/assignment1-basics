@@ -45,12 +45,12 @@
    - [ ] Log validation loss.                                               
                                                                             
    ## Checkpointing                                                         
-   - [ ] Periodically save checkpoint:                                      
-     - [ ] model state                                                      
-     - [ ] optimizer state                                                  
-     - [ ] iteration                                                        
-   - [ ] Add option to resume from checkpoint.                              
-   - [ ] Verify resumed training starts from correct iteration.             
+   - [x] Periodically save checkpoint:                                      
+     - [x] model state                                                      
+     - [x] optimizer state                                                  
+     - [x] iteration                                                        
+   - [x] Add option to resume from checkpoint.                              
+   - [x] Verify resumed training starts from correct iteration.             
                                                                             
    ## Sanity Checks                                                         
    - [x] Overfit a tiny dataset.                                            
@@ -58,7 +58,7 @@
    - [ ] Check no NaNs in loss or gradients.                                
    - [x] Check batch/input/target shapes.                                   
    - [x] Check model and data are on same device.                           
-   - [ ] Confirm checkpoints can be saved and loaded.                       
+   - [x] Confirm checkpoints can be saved and loaded.                       
                                                                             
    ## Experiment Logging                                                    
    - [x] Print iteration, train loss, validation loss, LR.                  

@@ -1,6 +1,8 @@
 import argparse
 import logging
 import numpy as np
+import torch
+import random
 
 from cs336_basics.utils import *
 from cs336_basics.optimizer import *
@@ -15,6 +17,11 @@ logging.basicConfig(
 ) 
 
 def train(args):
+
+    # Set seeds for randomness
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
     
     # initialize model
     model = TransformerLM(
@@ -41,6 +48,16 @@ def train(args):
         eps=args.eps
     )
 
+    start_iteration = 0
+
+    # resume from checkpoint
+    if args.resume_from is not None:
+        start_iteration = load_checkpoint(
+            src=args.resume_from,
+            model=model,
+            optimizer=optimizer
+        )
+
     # prepare dataset
     train_dataset = np.load(args.train_data, mmap_mode="r")
 
@@ -56,7 +73,7 @@ def train(args):
 
     # training loop
     model.train()
-    for it in range(args.num_iters):
+    for it in range(start_iteration, start_iteration + args.num_iters):
 
         inputs, targets = get_batch(
             dataset=train_dataset,
@@ -89,11 +106,11 @@ def train(args):
 
         optimizer.step()
 
-        if it % args.log_every == 0:
-            logging.info(f"Iteration {it}, lr={lr}, loss={loss.item()}")
+        if (it + 1) % args.log_every == 0:
+            logging.info(f"Iteration {it + 1}, lr={lr}, loss={loss.item()}")
 
         if (it + 1) % args.checkpoint_every == 0 and args.checkpoint_output is not None:
-            logging.info(f"Iteration {it} Saving checkpoint...")
+            logging.info(f"Iteration {it + 1} Saving checkpoint...")
             save_checkpoint(
                 model=model,
                 optimizer=optimizer,
@@ -117,13 +134,17 @@ def main():
     # data
     parser.add_argument("--train-data", required=True)
     parser.add_argument("--val-data")
+
+    # checkpointing
     parser.add_argument("--checkpoint-output")
+    parser.add_argument("--checkpoint-every", type=int, default=10)
+    parser.add_argument("--resume-from")
 
     # training
+    parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument("--num-iters", type=int, default=1000)
     parser.add_argument("--device", default="mps")
-    parser.add_argument("--checkpoint-every", type=int, default=10)
     parser.add_argument("--max-grad-norm", type=float, default=1.0)
 
     # optimizer
