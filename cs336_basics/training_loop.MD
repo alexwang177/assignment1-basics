@@ -55,7 +55,7 @@
    ## Sanity Checks                                                         
    - [x] Overfit a tiny dataset.                                            
    - [x] Confirm loss decreases on a small run.                             
-   - [ ] Check no NaNs in loss or gradients.                                
+   - [x] Check no NaNs in loss or gradients.                                
    - [x] Check batch/input/target shapes.                                   
    - [x] Check model and data are on same device.                           
    - [x] Confirm checkpoints can be saved and loaded.                       

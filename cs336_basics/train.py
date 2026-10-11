@@ -3,6 +3,7 @@ import logging
 import numpy as np
 import torch
 import random
+import time
 
 from cs336_basics.utils import *
 from cs336_basics.optimizer import *
@@ -73,6 +74,8 @@ def train(args):
 
     # training loop
     model.train()
+    last_log_time = time.time()
+
     for it in range(start_iteration, start_iteration + args.num_iters):
 
         inputs, targets = get_batch(
@@ -115,7 +118,11 @@ def train(args):
         optimizer.step()
 
         if (it + 1) % args.log_every == 0:
-            logging.info(f"Iteration {it + 1}, lr={lr}, loss={loss.item()}")
+            now = time.time()
+            elapsed_time = now - last_log_time
+            last_log_time = now
+            tokens_per_sec = (args.log_every * args.batch_size * args.context_length) / elapsed_time
+            logging.info(f"Iteration {it + 1}, lr={lr}, loss={loss.item()}, tokens/sec={tokens_per_sec}")
 
         if (it + 1) % args.checkpoint_every == 0 and args.checkpoint_output is not None:
             logging.info(f"Iteration {it + 1} Saving checkpoint...")
