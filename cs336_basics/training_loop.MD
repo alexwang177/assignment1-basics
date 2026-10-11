@@ -38,11 +38,11 @@
    - [x] Log training loss periodically.                                    
                                                                             
    ## Validation                                                            
-   - [ ] Periodically switch model to eval mode.                            
-   - [ ] Run several validation batches under `torch.no_grad()`.            
-   - [ ] Average validation loss.                                           
-   - [ ] Switch model back to train mode.                                   
-   - [ ] Log validation loss.                                               
+   - [x] Periodically switch model to eval mode.                            
+   - [x] Run several validation batches under `torch.no_grad()`.            
+   - [x] Average validation loss.                                           
+   - [x] Switch model back to train mode.                                   
+   - [x] Log validation loss.                                               
                                                                             
    ## Checkpointing                                                         
    - [x] Periodically save checkpoint:                                      

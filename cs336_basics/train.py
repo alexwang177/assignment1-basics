@@ -25,7 +25,7 @@ def evaluate(
     logging.info("Starting evaluation...")
     model.eval()
 
-    eval_loss = 0
+    eval_loss = torch.zeros((), device=args.device)
 
     with torch.no_grad():
 
@@ -40,10 +40,10 @@ def evaluate(
 
             logits = model(inputs)
             loss = optimized_ce_loss(logits, targets)
-            eval_loss += loss.item()
+            eval_loss += loss.detach()
 
     eval_loss /= args.eval_iters
-    logging.info(f"Validation loss={eval_loss}")
+    logging.info(f"Validation loss={eval_loss.item()}")
 
     model.train()
 
