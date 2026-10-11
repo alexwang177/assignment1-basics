@@ -85,7 +85,15 @@ def train(args):
         optimizer.zero_grad()
         logits = model(inputs)
         loss = optimized_ce_loss(logits, targets)
+
+        if not torch.isfinite(loss):
+            raise Exception(f"Invalid loss value: {loss.item()}")
+
         loss.backward()
+
+        for name, param in model.named_parameters():
+            if param.grad is not None and not torch.isfinite(param.grad).all().item():
+                raise Exception(f"Invalid gradient value for {name}")
 
         # apply grad clip
         grad_clip(

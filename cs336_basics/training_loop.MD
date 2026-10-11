@@ -4,7 +4,7 @@
    ## Setup                                                                 
    - [X] Choose config mechanism: argparse, dataclass, YAML, or simple      
  constants.                                                                 
-   - [ ] Set random seeds for reproducibility.                              
+   - [x] Set random seeds for reproducibility.                              
    - [X] Select device: `cpu`, `cuda`, or `mps`.                            
    - [x] Load train/validation token arrays, preferably with `np.load(...,  
  mmap_mode="r")`.                                                           
