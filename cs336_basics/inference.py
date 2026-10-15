@@ -25,13 +25,14 @@ def decode(
     model: torch.nn.Module,
     prompt: str, 
     context_length: int,
-    max_generated_tokens: Optional[int] = None,
-    temp: Optional[int] = None, 
-    top_p: Optional[int] = None,
+    temp: float,
+    max_generated_tokens: int,
+    top_p: Optional[float] = None,
     device: str = "mps"
-) -> List[str]:
+) -> str:
     
     tokenizer = get_tokenizer()
+    EOS_ID = tokenizer.encode("<|endoftext|>")[0]
     
     logging.info(f"User prompt: [{prompt}]")
 
@@ -51,16 +52,21 @@ def decode(
             logits = model(input_tokens)[-1]
 
         # logging.info(f"Logits Shape: {logits.shape}")
-        # logging.info(f"Logits: {logits}"
+        # logging.info(f"Logits: {logits}")
 
-        probs = softmax(x=logits, i=-1)
-        next_token_id = torch.argmax(probs)
+        probs = softmax(x=logits, i=-1, temp=temp)
+        next_token_id = torch.multinomial(probs, 1)
         # logging.info(f"Next token probs: {probs}")
         # logging.info(f"Next token shape: {next_token_id.shape}")
         # logging.info(f"Next token ID: {next_token_id}")
 
-        output_tokens.append(next_token_id.item())
-        input_tokens = torch.cat((input_tokens, torch.unsqueeze(next_token_id, 0).to(device)), 0)
+        next_token_int = next_token_id.item()
+
+        if next_token_int == EOS_ID:
+            break
+
+        output_tokens.append(next_token_int)
+        input_tokens = torch.cat((input_tokens, next_token_id), 0)
 
         input_tokens = input_tokens[-context_length:]
 
@@ -108,7 +114,8 @@ def main():
         context_length=args.context_length,
         max_generated_tokens=args.max_generated_tokens,
         temp=args.temp,
-        top_p=args.top_p
+        top_p=args.top_p,
+        device=args.device
     )
 
     print(output)

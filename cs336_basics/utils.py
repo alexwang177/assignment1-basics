@@ -118,8 +118,12 @@ class RoPE(nn.Module):
         return output
 
 
-def softmax(x: torch.Tensor, i: int) -> torch.Tensor:
+def softmax(x: torch.Tensor, i: int, temp: float = 1.0) -> torch.Tensor:
+    assert temp > 0
+
     stable = x - torch.max(x, dim=i, keepdim=True).values
+    stable = stable / temp
+
     exp_values = torch.exp(stable)
     output = exp_values / torch.sum(exp_values, dim=i, keepdim=True)
     return output
