@@ -55,10 +55,35 @@ def decode(
         # logging.info(f"Logits: {logits}")
 
         probs = softmax(x=logits, i=-1, temp=temp)
-        next_token_id = torch.multinomial(probs, 1)
-        # logging.info(f"Next token probs: {probs}")
-        # logging.info(f"Next token shape: {next_token_id.shape}")
-        # logging.info(f"Next token ID: {next_token_id}")
+
+
+        if top_p is not None:
+            # Top-p sampling
+
+            assert top_p > 0 and top_p <= 1.0
+
+            logging.info(f"Using top-p sampling...")
+            probs_values, probs_indices = torch.sort(probs, descending=True)
+            prefix_sum = torch.cumsum(probs_values, dim=-1)
+
+            logging.info(f"Sorted probs: {probs_values}")
+            logging.info(f"Prefix sum: {prefix_sum}")
+
+            insert_idx = torch.searchsorted(prefix_sum, top_p)
+            logging.info(f"Insert idx: {insert_idx}")
+
+            # Truncate probability distribution of tokens
+            probs_values = probs_values[:insert_idx + 1]
+            lookup_idx = torch.multinomial(probs_values, 1)
+            next_token_id = probs_indices[lookup_idx]
+
+        else:
+            # Normal sampling
+            next_token_id = torch.multinomial(probs, 1)
+            logging.info(f"Next token probs: {probs}")
+
+        logging.info(f"Next token shape: {next_token_id.shape}")
+        logging.info(f"Next token ID: {next_token_id}")
 
         next_token_int = next_token_id.item()
 
