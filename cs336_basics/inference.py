@@ -24,6 +24,7 @@ def get_tokenizer():
 def decode(
     model: torch.nn.Module,
     prompt: str, 
+    context_length: int,
     max_generated_tokens: Optional[int] = None,
     temp: Optional[int] = None, 
     top_p: Optional[int] = None,
@@ -39,6 +40,9 @@ def decode(
 
     logging.info(f"Token IDs: {input_tokens}")
 
+    if len(input_tokens) > context_length:
+        input_tokens = input_tokens[-context_length:]
+
     output_tokens = []
 
     while len(output_tokens) < max_generated_tokens:
@@ -47,7 +51,7 @@ def decode(
             logits = model(input_tokens)[-1]
 
         # logging.info(f"Logits Shape: {logits.shape}")
-        # logging.info(f"Logits: {logits}")
+        # logging.info(f"Logits: {logits}"
 
         probs = softmax(x=logits, i=-1)
         next_token_id = torch.argmax(probs)
@@ -57,6 +61,8 @@ def decode(
 
         output_tokens.append(next_token_id.item())
         input_tokens = torch.cat((input_tokens, torch.unsqueeze(next_token_id, 0).to(device)), 0)
+
+        input_tokens = input_tokens[-context_length:]
 
         logging.info(f"Output tokens: {len(output_tokens)} Max tokens: {max_generated_tokens}")
         
@@ -70,7 +76,7 @@ def main():
 
     # model
     parser.add_argument("--vocab-size", type=int, default=50257)
-    parser.add_argument("--context-length", type=int, default=256)
+    parser.add_argument("--context-length", type=int, default=8)
     parser.add_argument("--num-layers", type=int, default=4)
     parser.add_argument("--num-heads", type=int, default=4)
     parser.add_argument("--emb-dim", type=int, default=256)
@@ -99,6 +105,7 @@ def main():
     output = decode(
         model=model,
         prompt="Hi my name is Alex.",
+        context_length=args.context_length,
         max_generated_tokens=args.max_generated_tokens,
         temp=args.temp,
         top_p=args.top_p
